@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Perfil</title>
+    <style>
+        body { font-family: sans-serif; background: #f8fafc; padding: 40px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
+        .reserva-item { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; justify-content: space-between;}
+        .btn-volver { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #2563eb; font-weight: bold;}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <a href="index.html" class="btn-volver">← Volver al inicio</a>
+        <h2 id="nombreUsuario">Mi Perfil</h2>
+        <h3>Mis Reservas Activas</h3>
+        <div id="lista-reservas">Cargando...</div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if(!user) window.location.href = 'login.html';
+        
+        document.getElementById('nombreUsuario').innerText = `Hola, ${user.nombre}`;
+
+        async function cargarReservas() {
+            const res = await fetch(`/api/mis-reservas/${user.id}`);
+            const reservas = await res.json();
+            const contenedor = document.getElementById('lista-reservas');
+            
+            if(reservas.length === 0) {
+                contenedor.innerHTML = '<p>No tienes reservas registradas.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = '';
+            reservas.forEach(r => {
+                const fechaFormat = new Date(r.fecha).toLocaleDateString();
+                contenedor.innerHTML += `
+                    <div class="reserva-item">
+                        <div>
+                            <strong>${r.nombre}</strong><br>
+                            📅 ${fechaFormat} | ⏰ ${r.hora_inicio.substring(0,5)}
+                        </div>
+                        <div style="color: #16a34a; font-weight: bold;">S/${r.precio}</div>
+                    </div>
+                `;
+            });
+        }
+        cargarReservas();
+    </script>
+</body>
+</html>

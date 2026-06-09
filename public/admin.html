@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Admin</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; }
+        .topbar { background: #0f172a; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center;}
+        .topbar .logo { color: #f59e0b; font-weight: bold; font-size: 20px; }
+        .btn-cerrar { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;}
+        .container { padding: 40px; }
+        .grid-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; border-top: 4px solid #7c3aed; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card h3 { display: flex; align-items: center; gap: 10px; margin-top: 0;}
+        .action-list { list-style: none; padding: 0; }
+        .action-list li { padding: 12px; border: 1px solid #e2e8f0; margin-bottom: 10px; border-radius: 4px; color: #475569; cursor: pointer; transition: 0.2s;}
+        .action-list li:hover { background: #f8fafc; border-color: #cbd5e1; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="logo">Panel Admin</div>
+        <div>
+            <span style="margin-right: 20px;" id="admin-name">Administrador</span>
+            <button class="btn-cerrar" onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Panel de Control General</h2>
+        <div class="grid-cards">
+            <div class="card">
+                <h3>💳 Gestionar Pagos</h3>
+                <p style="color: #64748b; font-size: 14px;">Procesos financieros y facturación.</p>
+                <ul class="action-list">
+                    <li>1. Validar Pagos</li>
+                    <li>2. Emitir Comprobantes</li>
+                    <li>3. Registrar Pagos Manuales</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="border-color: #3b82f6;">📅 Gestionar Reservas</h3>
+                <p style="color: #64748b; font-size: 14px;">Administración de solicitudes de clientes.</p>
+                <ul class="action-list">
+                    <li onclick="alert('Funcionalidad en desarrollo para la V2')">1. Visualizar Reservas</li>
+                    <li>2. Aprobar o Cancelar</li>
+                    <li>3. Reprogramar Horarios</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="border-color: #10b981;">⚽ Gestionar Canchas</h3>
+                <p style="color: #64748b; font-size: 14px;">Configuración de infraestructura y tarifas.</p>
+                <ul class="action-list">
+                    <li>1. Registrar Cancha</li>
+                    <li>2. Actualizar Disponibilidad</li>
+                    <li>3. Modificar Precios</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if(!user || user.rol !== 'admin') window.location.href = 'login.html';
+        document.getElementById('admin-name').innerText = user.nombre;
+
+        function cerrarSesion() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acceder - Depor Plaza</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .auth-container { background: #1e293b; padding: 40px; border-radius: 10px; width: 320px; text-align: center; border-top: 5px solid #f59e0b; box-shadow: 0 10px 25px rgba(0,0,0,0.5);}
+        .logo-text { font-size: 24px; font-weight: bold; color: #f59e0b; margin-bottom: 20px; cursor: pointer;}
+        input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white; outline: none;}
+        input:focus { border-color: #f59e0b; }
+        button { background: #f59e0b; color: white; border: none; padding: 12px 20px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 15px; font-size: 16px; transition: 0.3s;}
+        button:hover { background: #d97706; }
+        .toggle-text { margin-top: 20px; font-size: 14px; color: #94a3b8; }
+        .toggle-text span { color: #f59e0b; cursor: pointer; font-weight: bold; }
+        .toggle-text span:hover { text-decoration: underline; }
+        
+        /* Ocultar elementos */
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo-text" onclick="window.location.href='index.html'">Depor Plaza</div>
+        
+        <div id="login-section">
+            <h2>Iniciar Sesión</h2>
+            <form id="loginForm">
+                <input type="email" id="login-email" placeholder="Correo electrónico" required>
+                <input type="password" id="login-password" placeholder="Contraseña" required>
+                <button type="submit">Ingresar</button>
+            </form>
+            <p class="toggle-text">¿No tienes cuenta? <span onclick="toggleForms()">Regístrate aquí</span></p>
+        </div>
+
+        <div id="register-section" class="hidden">
+            <h2>Crear Cuenta</h2>
+            <form id="registerForm">
+                <input type="text" id="reg-nombre" placeholder="Nombre completo" required>
+                <input type="email" id="reg-email" placeholder="Correo electrónico" required>
+                <input type="password" id="reg-password" placeholder="Contraseña" required>
+                <button type="submit" style="background: #22c55e;">Registrarme</button>
+            </form>
+            <p class="toggle-text">¿Ya tienes cuenta? <span onclick="toggleForms()">Inicia sesión</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Función para alternar entre Login y Registro
+        function toggleForms() {
+            document.getElementById('login-section').classList.toggle('hidden');
+            document.getElementById('register-section').classList.toggle('hidden');
+        }
+
+        // --- Lógica de Login ---
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = data.user.rol === 'admin' ? 'admin.html' : 'sedes.html';
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        // --- Lógica de Registro ---
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('reg-nombre').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            
+            try {
+                const response = await fetch('/api/registro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, email, password })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('¡Cuenta creada con éxito!');
+                    // Guardar usuario y redirigir directamente a reservar (Auto-login)
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = 'sedes.html';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

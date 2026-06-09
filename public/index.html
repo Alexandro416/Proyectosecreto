@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Depor Plaza</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: white; }
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: #1e293b; border-bottom: 2px solid #334155; }
+        .logo { color: #f59e0b; font-weight: bold; font-size: 28px; display: flex; align-items: center; gap: 10px;}
+        .logo-circle { width: 30px; height: 30px; background-color: #f59e0b; border-radius: 50%; }
+        .menu a { color: white; text-decoration: none; margin-left: 20px; font-size: 16px; }
+        .menu a:hover { color: #f59e0b; }
+        .hero { text-align: center; padding: 120px 20px; background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('https://images.unsplash.com/photo-1518605368461-1e1e38dd1528?auto=format&fit=crop&q=80'); background-size: cover; background-position: center; min-height: 60vh;}
+        .btn-reserva { background: #22c55e; color: white; padding: 15px 40px; border: none; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 30px; transition: 0.3s; }
+        .btn-reserva:hover { background: #16a34a; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <div class="logo"><div class="logo-circle"></div> Depor Plaza</div>
+        <div class="menu">
+            <a href="#">Inicio</a>
+            <a href="#">Nosotros</a>
+            <a href="login.html" id="link-login"> Registro / Login</a>
+            <a href="perfil.html" id="link-perfil" style="display: none; color: #f59e0b;">Mi Cuenta</a>
+            <a href="#" id="link-logout" style="display: none;" onclick="cerrarSesion()">Salir</a>
+        </div>
+    </div>
+    <div class="hero">
+        <h1 style="font-size: 48px; margin-bottom: 10px;">Quiénes somos</h1>
+        <p style="font-size: 20px; font-style: italic; color: #f59e0b;">"La mejor cancha para tu equipo"</p>
+        <p style="max-width: 600px; margin: 20px auto; line-height: 1.6;">Somos especialistas en brindar los mejores espacios deportivos de Lima. Visítanos y disfruta de canchas de grass sintético de primer nivel.</p>
+        <button class="btn-reserva" onclick="irAReservar()">Reserva YA!!</button>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) {
+            document.getElementById('link-login').style.display = 'none';
+            document.getElementById('link-perfil').style.display = 'inline';
+            document.getElementById('link-logout').style.display = 'inline';
+            if(user.rol === 'admin') document.getElementById('link-perfil').href = 'admin.html';
+        }
+
+        function irAReservar() {
+            if (user) window.location.href = 'sedes.html';
+            else window.location.href = 'login.html';
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('user');
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>

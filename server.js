@@ -2,6 +2,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const path = require('path');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 const app = express();
@@ -19,41 +20,55 @@ const dbConfig = {
     database: 'deporplaza'
 };
 
-// 1. Login
+/// --- 1. Login (Actualizado con Encriptación) ---
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
         const connection = await mysql.createConnection(dbUrl);
-        const [rows] = await connection.execute('SELECT id, nombre, email, rol FROM usuarios WHERE email = ? AND password = ?', [email, password]);
+        // Ahora solo buscamos por correo
+        const [rows] = await connection.execute('SELECT id, nombre, email, password, rol FROM usuarios WHERE email = ?', [email]);
         await connection.end();
         
-        if (rows.length > 0) res.json({ success: true, user: rows[0] });
-        else res.json({ success: false, message: 'Credenciales incorrectas' });
+        if (rows.length > 0) {
+            // Comparamos la contraseña escrita con la encriptada en la BD
+            const contrasenaValida = await bcrypt.compare(password, rows[0].password);
+            
+            if (contrasenaValida) {
+                // Por seguridad, quitamos el password de los datos que enviamos al frontend
+                const { password: pwd, ...userSinPassword } = rows[0]; 
+                res.json({ success: true, user: userSinPassword });
+            } else {
+                res.json({ success: false, message: 'Contraseña incorrecta' });
+            }
+        } else {
+            res.json({ success: false, message: 'Usuario no encontrado' });
+        }
     } catch (error) { 
         res.status(500).json({ error: error.message }); 
     }
 });
 
-// 2. Registro de nuevo usuario
+// --- 2. Registro (Actualizado con Encriptación) ---
 app.post('/api/registro', async (req, res) => {
     try {
         const { nombre, email, password } = req.body;
         const connection = await mysql.createConnection(dbUrl);
         
-        // Verificar si el correo ya existe
         const [existentes] = await connection.execute('SELECT id FROM usuarios WHERE email = ?', [email]);
         if (existentes.length > 0) {
             await connection.end();
             return res.json({ success: false, message: 'Este correo ya está registrado.' });
         }
 
-        // Insertar el nuevo usuario (rol 'cliente' por defecto)
+        // MAGIA: Encriptamos la contraseña antes de guardarla (con 10 "saltos" de seguridad)
+        const saltos = 10;
+        const passwordEncriptada = await bcrypt.hash(password, saltos);
+
         const [resultado] = await connection.execute(
             'INSERT INTO usuarios (nombre, email, password, rol) VALUES (?, ?, ?, "cliente")',
-            [nombre, email, password]
+            [nombre, email, passwordEncriptada]
         );
 
-        // Obtener los datos del usuario recién creado para iniciar sesión
         const [nuevoUsuario] = await connection.execute(
             'SELECT id, nombre, email, rol FROM usuarios WHERE id = ?', 
             [resultado.insertId]

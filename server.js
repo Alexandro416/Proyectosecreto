@@ -17,10 +17,13 @@ const dbUrl = process.env.MYSQL_URL;
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
-    secure: true, // El puerto 465 requiere conexión segura (SSL/TLS)
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+    },
+    tls: {
+        rejectUnauthorized: false // Evita bloqueos de seguridad estrictos en los proxies de Railway
     }
 });
 

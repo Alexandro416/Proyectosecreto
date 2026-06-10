@@ -6,6 +6,11 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+// --- EL PARCHE DEFINITIVO PARA RAILWAY (Forzar IPv4 globalmente) ---
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+// ----------------------------------------------------------------
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -13,11 +18,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const dbUrl = process.env.MYSQL_URL;
 
-// Configuración del correo alternativo (Puerto 587)
+// Configuración del correo (NodeMailer)
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // ¡OJO! Para el puerto 587 esto debe ser false obligatoriamente
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS

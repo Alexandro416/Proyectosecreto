@@ -3,6 +3,7 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
@@ -94,32 +95,56 @@ app.get('/api/disponibilidad/:fecha', async (req, res) => {
     }
 });
 
-// 4. Crear Reserva
+// 4. Crear Reserva (Y enviar correo real)
 app.post('/api/reservar', async (req, res) => {
     try {
         const { usuario_id, cancha_id, fecha, hora_inicio, metodo_pago } = req.body;
         const connection = await mysql.createConnection(dbUrl);
+        
+        // 1. Guardar la reserva en MySQL
         await connection.execute(
             'INSERT INTO reservas (usuario_id, cancha_id, fecha, hora_inicio, metodo_pago) VALUES (?, ?, ?, ?, ?)',
             [usuario_id, cancha_id, fecha, hora_inicio, metodo_pago]
         );
-        await connection.end();
-        res.json({ success: true });
-    } catch (error) { 
-        res.status(500).json({ error: error.message }); 
-    }
-});
 
-app.get('/api/mis-reservas/:id', async (req, res) => {
-    try {
-        const connection = await mysql.createConnection(dbUrl);
-        const [rows] = await connection.execute(`
-            SELECT r.id, r.fecha, r.hora_inicio, r.estado, c.nombre, c.tipo, c.precio 
-            FROM reservas r JOIN canchas c ON r.cancha_id = c.id 
-            WHERE r.usuario_id = ? ORDER BY r.fecha DESC, r.hora_inicio DESC
-        `, [req.params.id]);
+        // 2. Obtener los datos del usuario y la cancha para armar el correo
+        const [userData] = await connection.execute('SELECT nombre, email FROM usuarios WHERE id = ?', [usuario_id]);
+        const [canchaData] = await connection.execute('SELECT nombre FROM canchas WHERE id = ?', [cancha_id]);
         await connection.end();
-        res.json(rows);
+
+        // 3. Enviar el correo de confirmación
+        if (userData.length > 0) {
+            const correoUsuario = userData[0].email;
+            const nombreUsuario = userData[0].nombre;
+            const nombreCancha = canchaData[0].nombre;
+
+            const mailOptions = {
+                from: `"Depor Plaza ⚽" <${process.env.EMAIL_USER}>`,
+                to: correoUsuario, // El correo con el que se registró el usuario
+                subject: '¡Tu reserva está confirmada! 🎉',
+                html: `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 10px;">
+                        <h2 style="color: #1b5e20;">¡Hola, ${nombreUsuario}!</h2>
+                        <p>Tu reserva en <strong>Depor Plaza</strong> ha sido registrada exitosamente. Aquí tienes los detalles:</p>
+                        
+                        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <p>⚽ <strong>Cancha:</strong> ${nombreCancha}</p>
+                            <p>📅 <strong>Fecha:</strong> ${fecha}</p>
+                            <p>🕒 <strong>Hora:</strong> ${hora_inicio.substring(0,5)}</p>
+                            <p>💳 <strong>Método de pago:</strong> ${metodo_pago === 'qr' ? 'QR / Yape / Plin' : 'Tarjeta'}</p>
+                        </div>
+                        
+                        <p>Por favor, llega 15 minutos antes. ¡Te esperamos en la cancha!</p>
+                        <p style="color: #6c757d; font-size: 12px; margin-top: 30px;">Este es un correo automático de tu proyecto de prueba.</p>
+                    </div>
+                `
+            };
+
+            // Enviamos el correo (usamos .catch para que si falla el correo, no crashee la reserva)
+            transporter.sendMail(mailOptions).catch(error => console.error("Error enviando correo:", error));
+        }
+
+        res.json({ success: true });
     } catch (error) { 
         res.status(500).json({ error: error.message }); 
     }
@@ -206,7 +231,14 @@ app.put('/api/perfil/:id', async (req, res) => {
     }
 });
 
-
+// Configuración del correo
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 
 // --- INICIO DEL SERVIDOR ---

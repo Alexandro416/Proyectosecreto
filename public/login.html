@@ -14,8 +14,6 @@
         .toggle-text { margin-top: 20px; font-size: 14px; color: #94a3b8; }
         .toggle-text span { color: #f59e0b; cursor: pointer; font-weight: bold; }
         .toggle-text span:hover { text-decoration: underline; }
-        
-        /* Ocultar elementos */
         .hidden { display: none; }
     </style>
 </head>
@@ -38,6 +36,7 @@
             <form id="registerForm">
                 <input type="text" id="reg-nombre" placeholder="Nombre completo" required>
                 <input type="email" id="reg-email" placeholder="Correo electrónico" required>
+                <input type="tel" id="reg-telefono" placeholder="Número de teléfono (Ej: 987654321)" required>
                 <input type="password" id="reg-password" placeholder="Contraseña" required>
                 <button type="submit" style="background: #22c55e;">Registrarme</button>
             </form>
@@ -46,7 +45,6 @@
     </div>
 
     <script>
-        // Función para alternar entre Login y Registro
         function toggleForms() {
             document.getElementById('login-section').classList.toggle('hidden');
             document.getElementById('register-section').classList.toggle('hidden');
@@ -82,19 +80,20 @@
             e.preventDefault();
             const nombre = document.getElementById('reg-nombre').value;
             const email = document.getElementById('reg-email').value;
+            const telefono = document.getElementById('reg-telefono').value; // Capturamos el teléfono
             const password = document.getElementById('reg-password').value;
             
             try {
                 const response = await fetch('/api/registro', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, email, password })
+                    // Enviamos el teléfono al backend
+                    body: JSON.stringify({ nombre, email, telefono, password }) 
                 });
                 const data = await response.json();
                 
                 if (data.success) {
                     alert('¡Cuenta creada con éxito!');
-                    // Guardar usuario y redirigir directamente a reservar (Auto-login)
                     localStorage.setItem('user', JSON.stringify(data.user));
                     window.location.href = 'sedes.html';
                 } else {

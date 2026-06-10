@@ -48,10 +48,11 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// --- 2. Registro (Actualizado con Encriptación) ---
+// 2. Registro de nuevo usuario
 app.post('/api/registro', async (req, res) => {
     try {
-        const { nombre, email, password } = req.body;
+        // Añadimos 'telefono' a los datos que recibimos
+        const { nombre, email, password, telefono } = req.body; 
         const connection = await mysql.createConnection(dbUrl);
         
         const [existentes] = await connection.execute('SELECT id FROM usuarios WHERE email = ?', [email]);
@@ -60,13 +61,13 @@ app.post('/api/registro', async (req, res) => {
             return res.json({ success: false, message: 'Este correo ya está registrado.' });
         }
 
-        // MAGIA: Encriptamos la contraseña antes de guardarla (con 10 "saltos" de seguridad)
         const saltos = 10;
         const passwordEncriptada = await bcrypt.hash(password, saltos);
 
+        // Agregamos la columna 'telefono' al INSERT
         const [resultado] = await connection.execute(
-            'INSERT INTO usuarios (nombre, email, password, rol) VALUES (?, ?, ?, "cliente")',
-            [nombre, email, passwordEncriptada]
+            'INSERT INTO usuarios (nombre, email, password, telefono, rol) VALUES (?, ?, ?, ?, "cliente")',
+            [nombre, email, passwordEncriptada, telefono]
         );
 
         const [nuevoUsuario] = await connection.execute(
@@ -80,7 +81,6 @@ app.post('/api/registro', async (req, res) => {
         res.status(500).json({ error: error.message }); 
     }
 });
-
 // 3. Obtener disponibilidad (Canchas y Reservas de una fecha)
 app.get('/api/disponibilidad/:fecha', async (req, res) => {
     try {
@@ -110,12 +110,11 @@ app.post('/api/reservar', async (req, res) => {
     }
 });
 
-// 5. Obtener reservas del usuario (Para la página de Perfil)
 app.get('/api/mis-reservas/:id', async (req, res) => {
     try {
         const connection = await mysql.createConnection(dbUrl);
         const [rows] = await connection.execute(`
-            SELECT r.fecha, r.hora_inicio, c.nombre, c.precio 
+            SELECT r.id, r.fecha, r.hora_inicio, r.estado, c.nombre, c.tipo, c.precio 
             FROM reservas r JOIN canchas c ON r.cancha_id = c.id 
             WHERE r.usuario_id = ? ORDER BY r.fecha DESC, r.hora_inicio DESC
         `, [req.params.id]);
@@ -125,6 +124,90 @@ app.get('/api/mis-reservas/:id', async (req, res) => {
         res.status(500).json({ error: error.message }); 
     }
 });
+
+// 6. Cancelar reserva desde el perfil del usuario
+app.post('/api/reservas/:id/cancelar', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbUrl);
+        await connection.execute('UPDATE reservas SET estado = "cancelada" WHERE id = ?', [req.params.id]);
+        await connection.end();
+        res.json({ success: true });
+    } catch (error) { 
+        res.status(500).json({ error: error.message }); 
+    }
+});
+
+// --- ENDPOINTS DE ADMINISTRADOR ---
+
+// Obtener TODAS las reservas globales
+app.get('/api/admin/reservas', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbUrl);
+        const [rows] = await connection.execute(`
+            SELECT r.id, r.fecha, r.hora_inicio, r.estado, r.metodo_pago, 
+                   u.nombre as usuario, u.email, c.nombre as cancha
+            FROM reservas r
+            JOIN usuarios u ON r.usuario_id = u.id
+            JOIN canchas c ON r.cancha_id = c.id
+            ORDER BY r.fecha DESC, r.hora_inicio DESC
+        `);
+        await connection.end();
+        res.json(rows);
+    } catch (error) { 
+        res.status(500).json({ error: error.message }); 
+    }
+});
+
+// Cancelar una reserva
+app.post('/api/admin/reservas/:id/cancelar', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbUrl);
+        await connection.execute('UPDATE reservas SET estado = "cancelada" WHERE id = ?', [req.params.id]);
+        await connection.end();
+        res.json({ success: true });
+    } catch (error) { 
+        res.status(500).json({ error: error.message }); 
+    }
+});
+
+// --- ENDPOINTS DE PERFIL DE USUARIO ---
+
+// 1. Obtener datos completos del perfil
+app.get('/api/perfil/:id', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbUrl);
+        const [rows] = await connection.execute('SELECT nombre, email, telefono, direccion FROM usuarios WHERE id = ?', [req.params.id]);
+        await connection.end();
+        if (rows.length > 0) res.json(rows[0]);
+        else res.status(404).json({ error: 'Usuario no encontrado' });
+    } catch (error) { 
+        res.status(500).json({ error: error.message }); 
+    }
+});
+
+// 2. Actualizar un dato específico del perfil
+app.put('/api/perfil/:id', async (req, res) => {
+    try {
+        const { campo, valor } = req.body;
+        // Validamos que solo puedan editar estos campos por seguridad
+        const camposPermitidos = ['nombre', 'email', 'telefono', 'direccion'];
+        if (!camposPermitidos.includes(campo)) {
+            return res.status(400).json({ success: false, message: 'Campo inválido' });
+        }
+
+        const connection = await mysql.createConnection(dbUrl);
+        // Actualizamos dinámicamente el campo solicitado
+        await connection.execute(`UPDATE usuarios SET ${campo} = ? WHERE id = ?`, [valor, req.params.id]);
+        await connection.end();
+        
+        res.json({ success: true });
+    } catch (error) { 
+        res.status(500).json({ error: error.message }); 
+    }
+});
+
+
+
 
 // --- INICIO DEL SERVIDOR ---
 const PORT = process.env.PORT || 3000;

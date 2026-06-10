@@ -13,17 +13,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const dbUrl = process.env.MYSQL_URL;
 
-// Configuración del correo (NodeMailer)
+// Configuración del correo alternativo (Puerto 587)
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false, // ¡OJO! Para el puerto 587 esto debe ser false obligatoriamente
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
     tls: {
-        rejectUnauthorized: false // Evita bloqueos de seguridad estrictos en los proxies de Railway
+        rejectUnauthorized: false
     }
 });
 

@@ -15,7 +15,9 @@ const dbUrl = process.env.MYSQL_URL;
 
 // Configuración del correo (NodeMailer)
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // El puerto 465 requiere conexión segura (SSL/TLS)
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS

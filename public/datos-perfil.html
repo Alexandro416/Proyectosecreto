@@ -3,73 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
     <title>Mi Perfil - Depor Plaza</title>
-    <style>
-        /* --- MISMAS VARIABLES DEL SIDEBAR --- */
-        :root {
-            --sidebar-bg: #e88f13; /* Verde oscuro del diseño */
-            --sidebar-hover: #2e7d32;
-            --bg-color: #f4f6f8;
-            --text-main: #1a1a1a;
-            --text-muted: #6c757d;
-            --card-bg: #ffffff;
-            --icon-bg: #e8f5e9;
-            --icon-color: #2e7d32;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { display: flex; background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
-
-        /* --- SIDEBAR --- */
-        .sidebar { width: 260px; background-color: var(--sidebar-bg); color: white; display: flex; flex-direction: column; position: fixed; height: 100vh; }
-        .brand { padding: 30px 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;}
-        .brand-icon { font-size: 24px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; }
-        .brand-text h2 { font-size: 16px; margin: 0; letter-spacing: 1px;}
-        .brand-text p { font-size: 12px; color: rgba(255,255,255,0.7); }
-        .nav-menu { flex: 1; padding: 0 15px; }
-        .nav-link { display: flex; align-items: center; gap: 15px; padding: 15px 20px; color: white; text-decoration: none; border-radius: 10px; margin-bottom: 5px; transition: 0.2s; font-weight: 500; font-size: 15px;}
-        .nav-link:hover { background-color: rgba(255,255,255,0.1); }
-        .nav-link.active { background-color: var(--sidebar-hover); }
-        .user-profile { padding: 20px; background: rgba(0,0,0,0.15); margin: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; }
-        .avatar { width: 40px; height: 40px; background: #4caf50; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px;}
-        .user-info h4 { font-size: 14px; margin: 0; }
-        .user-info p { font-size: 12px; color: rgba(255,255,255,0.7); margin: 0;}
-        .logout-btn { margin: 0 15px 20px 15px; padding: 15px; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.8); cursor: pointer; border-radius: 8px; transition: 0.2s;}
-        .logout-btn:hover { background: rgba(255,0,0,0.1); color: white;}
-
-        /* --- NUEVO MAIN CONTENT: PERFIL --- */
-        .main-content { margin-left: 260px; flex: 1; padding: 40px 50px; max-width: 900px;}
-        
-        .section-card { background: var(--card-bg); border-radius: 12px; border: 1px solid #e0e0e0; margin-bottom: 25px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
-        .card-header { padding: 20px 25px; font-weight: 600; font-size: 16px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 10px;}
-        
-        .info-row { display: flex; align-items: center; padding: 20px 25px; border-bottom: 1px solid #f0f0f0; transition: background 0.2s;}
-        .info-row:hover { background: #fafafa; }
-        .info-row:last-child { border-bottom: none; }
-        
-        .info-icon { width: 40px; height: 40px; background: var(--icon-bg); color: var(--icon-color); border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 18px; margin-right: 20px;}
-        
-        .info-content { flex: 1; }
-        .info-label { font-size: 13px; color: var(--text-muted); margin-bottom: 3px; }
-        .info-value { font-size: 16px; font-weight: 500; color: var(--text-main); }
-        
-        .edit-btn { background: var(--icon-bg); color: var(--icon-color); border: none; width: 35px; height: 35px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: 0.2s;}
-        .edit-btn:hover { background: #c8e6c9; }
-
-        /* Botón Cambiar Contraseña */
-        .btn-outline { background: var(--icon-bg); color: var(--icon-color); border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;}
-        .btn-outline:hover { background: #c8e6c9; }
-
-        /* Toggle Switch */
-        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--sidebar-bg); }
-        input:checked + .slider:before { transform: translateX(24px); }
-    </style>
 </head>
-<body>
+<body class="body-dashboard body-datos">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
@@ -174,75 +111,7 @@
 
     </main>
 
-    <script>
-        const user = JSON.parse(localStorage.getItem('user'));
-        if(!user) window.location.href = 'login.html';
-
-        // Llenar Sidebar inicialmente
-        document.getElementById('sidebar-name').innerText = user.nombre;
-        document.getElementById('sidebar-email').innerText = user.email;
-        document.getElementById('sidebar-initials').innerText = user.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-
-        function cerrarSesion() {
-            localStorage.removeItem('user');
-            window.location.href = 'index.html';
-        }
-
-        // Cargar datos reales desde la BD
-        async function cargarPerfil() {
-            try {
-                const res = await fetch(`/api/perfil/${user.id}`);
-                const data = await res.json();
-                
-                document.getElementById('val-nombre').innerText = data.nombre;
-                document.getElementById('val-email').innerText = data.email;
-                document.getElementById('val-telefono').innerText = data.telefono || 'No registrado';
-                document.getElementById('val-direccion').innerText = data.direccion || 'No registrada';
-            } catch (error) {
-                console.error("Error al cargar perfil:", error);
-            }
-        }
-
-        // Función interactiva para editar un campo
-        async function editarCampo(campoDB, nombreMostrar) {
-            const valorActual = document.getElementById(`val-${campoDB}`).innerText;
-            const nuevoValor = prompt(`Ingresa tu nuevo ${nombreMostrar}:`, valorActual === 'No registrado' || valorActual === 'No registrada' ? '' : valorActual);
-            
-            if (nuevoValor !== null && nuevoValor.trim() !== "") {
-                try {
-                    const res = await fetch(`/api/perfil/${user.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ campo: campoDB, valor: nuevoValor.trim() })
-                    });
-                    
-                    const data = await res.json();
-                    if (data.success) {
-                        // Actualizar UI sin recargar la página
-                        document.getElementById(`val-${campoDB}`).innerText = nuevoValor.trim();
-                        
-                        // Si cambiaron el nombre, actualizamos el localStorage y el sidebar
-                        if (campoDB === 'nombre' || campoDB === 'email') {
-                            user[campoDB] = nuevoValor.trim();
-                            localStorage.setItem('user', JSON.stringify(user));
-                            if (campoDB === 'nombre') {
-                                document.getElementById('sidebar-name').innerText = nuevoValor.trim();
-                                document.getElementById('sidebar-initials').innerText = nuevoValor.trim().split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-                            } else {
-                                document.getElementById('sidebar-email').innerText = nuevoValor.trim();
-                            }
-                        }
-                    } else {
-                        alert("Error al actualizar: " + data.message);
-                    }
-                } catch (error) {
-                    console.error("Error:", error);
-                }
-            }
-        }
-
-        // Iniciar
-        cargarPerfil();
-    </script>
+<script src="/js/auth.js"></script>
+<script src="/js/datos-perfil.js"></script>
 </body>
 </html>

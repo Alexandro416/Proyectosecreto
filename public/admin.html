@@ -3,26 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Panel Admin - Depor Plaza</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; }
-        .topbar { background: #0f172a; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center;}
-        .topbar .logo { color: #f59e0b; font-weight: bold; font-size: 20px; }
-        .btn-cerrar { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;}
-        .container { padding: 40px; }
-        
-        /* Estilos de la Tabla */
-        .card-table { background: white; padding: 20px; border-radius: 8px; border-top: 4px solid #3b82f6; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 20px;}
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px;}
-        th { background: #f8fafc; color: #475569; font-weight: bold; }
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-        .bg-verde { background: #dcfce7; color: #16a34a; }
-        .bg-rojo { background: #fee2e2; color: #ef4444; }
-        .btn-cancelar { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s;}
-        .btn-cancelar:hover { background: #dc2626; }
-    </style>
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body>
+<body class="body-admin">
     <div class="topbar">
         <div class="logo">Panel Admin</div>
         <div>
@@ -53,63 +36,7 @@
             </table>
         </div>
     </div>
-
-    <script>
-        const user = JSON.parse(localStorage.getItem('user'));
-        if(!user || user.rol !== 'admin') {
-            alert('Acceso denegado.');
-            window.location.href = 'login.html';
-        }
-        document.getElementById('admin-name').innerText = `👤 ${user.nombre}`;
-
-        function cerrarSesion() {
-            localStorage.removeItem('user');
-            window.location.href = 'index.html';
-        }
-
-        async function cargarReservas() {
-            try {
-                const res = await fetch('/api/admin/reservas');
-                const reservas = await res.json();
-                const tbody = document.getElementById('tabla-reservas');
-                tbody.innerHTML = '';
-
-                reservas.forEach(r => {
-                    const fechaFormat = new Date(r.fecha).toLocaleDateString();
-                    const estadoHtml = r.estado === 'confirmada' 
-                        ? '<span class="badge bg-verde">Confirmada</span>' 
-                        : '<span class="badge bg-rojo">Cancelada</span>';
-                    
-                    const botonAccion = r.estado === 'confirmada'
-                        ? `<button class="btn-cancelar" onclick="cancelarReserva(${r.id})">Cancelar</button>`
-                        : '-';
-
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${fechaFormat}</td>
-                            <td>${r.hora_inicio.substring(0,5)}</td>
-                            <td>${r.usuario}<br><small style="color:#64748b;">${r.email}</small></td>
-                            <td>${r.cancha}</td>
-                            <td>${r.metodo_pago === 'qr' ? 'QR / Yape' : 'Tarjeta'}</td>
-                            <td>${estadoHtml}</td>
-                            <td>${botonAccion}</td>
-                        </tr>
-                    `;
-                });
-            } catch (error) {
-                console.error('Error cargando reservas:', error);
-            }
-        }
-
-        async function cancelarReserva(id) {
-            if(confirm('¿Estás seguro de cancelar esta reserva? El espacio quedará libre en la grilla.')) {
-                await fetch(`/api/admin/reservas/${id}/cancelar`, { method: 'POST' });
-                cargarReservas(); // Recarga la tabla
-            }
-        }
-
-        // Cargar datos al entrar
-        cargarReservas();
-    </script>
+<script src="/js/auth.js"></script>
+ <script src="/js/admin.js"></script>
 </body>
 </html>

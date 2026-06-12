@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// --- EL PARCHE DEFINITIVO PARA RAILWAY (Forzar IPv4 globalmente) ---
+
 const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first');
 // ----------------------------------------------------------------

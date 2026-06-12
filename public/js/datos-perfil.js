@@ -13,7 +13,6 @@ async function cargarPerfil() {
         document.getElementById('val-nombre').innerText = data.nombre;
         document.getElementById('val-email').innerText = data.email;
         document.getElementById('val-telefono').innerText = data.telefono || 'No registrado';
-        document.getElementById('val-direccion').innerText = data.direccion || 'No registrada';
     } catch (error) {
         console.error("Error al cargar perfil:", error);
     }

@@ -189,6 +189,24 @@ td.cell.selected { background-color: #1b5e20; color: white; font-weight: bold; }
 .btn-cancelar-modal { background-color: #333; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
 .btn-confirmar { background-color: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
 
+/* --- FIX PARA LA COLUMNA DE HORAS (Evitar que se sobreponga el texto) --- */
+.body-horarios th.sticky-col {
+    z-index: 30 !important; /* La esquina superior izquierda va por encima de TODO */
+}
+
+.body-horarios td.sticky-col {
+    position: sticky;
+    left: 0;
+    background-color: #fcfcfc; /* El fondo sólido es obligatorio como "pared" */
+    z-index: 20 !important; /* La columna de horas va por encima de las celdas de precio */
+}
+
+.body-horarios td.cell {
+    position: relative;
+    z-index: 1 !important; /* Las celdas de precio se van a la capa del fondo */
+}
+
+
 /* =========================================
    6. ADMIN PANEL
 ========================================= */
@@ -203,3 +221,74 @@ td.cell.selected { background-color: #1b5e20; color: white; font-weight: bold; }
 .card-table th { background: #f8fafc; color: #475569; font-weight: bold; }
 .bg-verde { background: #dcfce7; color: #16a34a; }
 .bg-rojo { background: #fee2e2; color: #ef4444; }
+/* Recuperar el botón rojo original del Admin */
+.body-admin .btn-cancelar { 
+    background: #ef4444; 
+    color: white; 
+    border: none; 
+    padding: 6px 12px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-size: 12px; 
+    transition: 0.2s;
+}
+
+.body-admin .btn-cancelar:hover { 
+    background: #dc2626; 
+}
+
+/* =========================================
+   7. RESPONSIVE (MÓVILES Y TABLETAS)
+========================================= */
+@media screen and (max-width: 768px) {
+  /* --- ARREGLO DEL DASHBOARD (Una columna en vez de fila) --- */
+    .body-dashboard {
+        flex-direction: column;
+    }
+
+    /* --- 1. INDEX --- */
+    .body-index .nav { flex-direction: column; padding: 20px; gap: 15px; }
+    .body-index .menu { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+    .body-index .menu a { margin-left: 0; }
+    .body-index .hero h1 { font-size: 36px !important; }
+
+    /* --- 2. LOGIN / REGISTRO --- */
+    .auth-container { width: 90%; padding: 30px 20px; }
+
+    /* --- 3. DASHBOARD Y ADMIN (El cambio más importante) --- */
+    /* Convertimos el menú lateral en un menú superior deslizable (scroll horizontal) */
+    .sidebar { position: relative; width: 100%; height: auto; display: block; }
+    .brand { padding: 20px; justify-content: center; border-bottom: none; margin-bottom: 0;}
+    .nav-menu { display: flex; overflow-x: auto; white-space: nowrap; padding: 0 15px 15px 15px; gap: 10px; }
+    .nav-menu::-webkit-scrollbar { display: none; } /* Oculta la barra de scroll para que se vea limpio */
+    .nav-link { margin-bottom: 0; }
+    
+    /* Ocultamos el cuadro de usuario del menú porque ocupa mucho espacio en móvil */
+    .user-profile { display: none; } 
+    .logout-btn { justify-content: center; margin: 10px 15px 20px 15px; }
+
+    /* El contenido principal ya no necesita estar empujado a la derecha */
+    .main-content, .admin-container { margin-left: 0; padding: 20px; max-width: 100%; }
+    .header-section h1 { font-size: 24px; }
+
+    /* --- 4. TARJETAS DE MIS RESERVAS --- */
+    .res-card { flex-direction: column; text-align: center; gap: 20px; padding: 15px; }
+    .res-info-container { flex-direction: column; }
+    .res-meta { flex-direction: column; gap: 10px; align-items: center; }
+    .res-actions { text-align: center; width: 100%; }
+
+    /* --- 5. PERFIL DE USUARIO --- */
+    .info-row { padding: 15px; }
+    .info-icon { margin-right: 10px; width: 35px; height: 35px; font-size: 16px; }
+    .info-value { font-size: 14px; word-break: break-word; }
+    .edit-btn { width: 30px; height: 30px; font-size: 12px; }
+
+    /* --- 6. TABLAS Y HORARIOS --- */
+    .card-table { overflow-x: auto; padding: 10px; }
+    
+    /* Barra flotante inferior de selección de cancha */
+    .selection-bar { flex-direction: column; text-align: center; gap: 15px; padding: 15px; width: 95%; bottom: 10px;}
+    .sel-info { flex-direction: column; gap: 5px; }
+    .sel-actions { width: 100%; justify-content: center; }
+    .btn-reservar { width: 100%; }
+}

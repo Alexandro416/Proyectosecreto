@@ -28,8 +28,33 @@
 .body-index .logo-circle { width: 30px; height: 30px; background-color: #f59e0b; border-radius: 50%; }
 .body-index .menu a { color: white; text-decoration: none; margin-left: 20px; font-size: 16px; }
 .body-index .menu a:hover { color: #f59e0b; }
-.body-index .hero { text-align: center; padding: 120px 20px; background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('https://images.unsplash.com/photo-1518605368461-1e1e38dd1528?auto=format&fit=crop&q=80'); background-size: cover; background-position: center; min-height: 60vh;}
-.btn-reserva { background: #22c55e; color: white; padding: 15px 40px; border: none; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 30px; transition: 0.3s; }
+/* NUEVO HERO (Dividido en dos columnas) */
+.body-index .hero { 
+    display: flex; 
+    justify-content: space-around; 
+    align-items: center; 
+    padding: 80px 50px; 
+    /* Aquí conectamos tu imagen local */
+    background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('https://png.pngtree.com/thumb_back/fh260/background/20241210/pngtree-soccer-field-and-spotlight-background-in-the-stadium-image_16742359.jpg'); 
+    background-size: cover; 
+    background-position: center; 
+    min-height: calc(100vh - 80px); /* Ocupa toda la pantalla bajo el menú */
+}
+
+/* Columna Izquierda */
+.hero-left { text-align: center; max-width: 400px; }
+.hero-logo { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
+.hero-logo-circle { width: 60px; height: 60px; background-color: #f59e0b; border-radius: 50%; }
+.hero-logo h2 { font-size: 48px; color: white; line-height: 1.1; margin: 0; text-align: left; }
+.hero-subtitle { font-size: 20px; font-style: italic; color: #f59e0b; margin-bottom: 30px; }
+
+/* Columna Derecha */
+.hero-right { text-align: right; max-width: 500px; }
+.hero-right h1 { font-size: 48px; margin-bottom: 20px; color: white; }
+.hero-right p { font-size: 18px; line-height: 1.6; color: #cbd5e1; }
+
+/* Botón de reserva */
+.btn-reserva { background: #22c55e; color: white; padding: 15px 40px; border: none; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
 .btn-reserva:hover { background: #16a34a; transform: scale(1.05); }
 
 /* =========================================
@@ -246,11 +271,13 @@ td.cell.selected { background-color: #1b5e20; color: white; font-weight: bold; }
         flex-direction: column;
     }
 
-    /* --- 1. INDEX --- */
+   /* --- 1. INDEX --- */
     .body-index .nav { flex-direction: column; padding: 20px; gap: 15px; }
     .body-index .menu { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
     .body-index .menu a { margin-left: 0; }
-    .body-index .hero h1 { font-size: 36px !important; }
+    .body-index .hero { flex-direction: column; gap: 40px; padding: 40px 20px; }
+    .hero-left, .hero-right { text-align: center; }
+    .hero-logo h2 { text-align: center; }
 
     /* --- 2. LOGIN / REGISTRO --- */
     .auth-container { width: 90%; padding: 30px 20px; }

@@ -11,17 +11,26 @@
         <div class="logo"><div class="logo-circle"></div> Depor Plaza</div>
         <div class="menu">
             <a href="#">Inicio</a>
-            <a href="#">Nosotros</a>
             <a href="login.html" id="link-login"> Registro / Login</a>
             <a href="perfil.html" id="link-perfil" style="display: none; color: #f59e0b;">Mi Cuenta</a>
             <a href="#" id="link-logout" style="display: none;" onclick="cerrarSesion()">Salir</a>
         </div>
     </div>
+    
     <div class="hero">
-        <h1 style="font-size: 48px; margin-bottom: 10px;">Quiénes somos</h1>
-        <p style="font-size: 20px; font-style: italic; color: #f59e0b;">"La mejor cancha para tu equipo"</p>
-        <p style="max-width: 600px; margin: 20px auto; line-height: 1.6;">Somos especialistas en brindar los mejores espacios deportivos de Lima. Visítanos y disfruta de canchas de grass sintético de primer nivel.</p>
-        <button class="btn-reserva" onclick="irAReservar()">Reserva YA!!</button>
+        <div class="hero-left">
+            <div class="hero-logo">
+                <div class="hero-logo-circle"></div>
+                <h2>Depor<br>Plaza</h2>
+            </div>
+            <p class="hero-subtitle">"La mejor cancha para tu equipo"</p>
+            <button class="btn-reserva" onclick="irAReservar()">Reserva YA!!</button>
+        </div>
+        
+        <div class="hero-right">
+            <h1>Quiénes somos</h1>
+            <p>Somos especialistas en brindar los mejores espacios deportivos de Lima. Visítanos y disfruta de canchas de grass sintético de primer nivel, vive y comparte la pasión del fútbol en un ambiente seguro acompañado de tu equipo y amigos.</p>
+        </div>
     </div>
 
     <script src="/js/auth.js"></script>

@@ -6,7 +6,6 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -57,7 +56,8 @@ app.post('/api/login', async (req, res) => {
 // Registro
 app.post('/api/registro', async (req, res) => {
     try {
-        const { nombre, email, password, telefono } = req.body;
+        // Se omiten teléfono y dirección porque no existen en el modelo de base de datos actual
+        const { nombre, email, password } = req.body;
         const connection = await mysql.createConnection(dbUrl);
 
         const [existentes] = await connection.execute('SELECT id FROM usuarios WHERE email = ?', [email]);
@@ -70,8 +70,8 @@ app.post('/api/registro', async (req, res) => {
         const passwordEncriptada = await bcrypt.hash(password, saltos);
 
         const [resultado] = await connection.execute(
-            'INSERT INTO usuarios (nombre, email, password, telefono, rol) VALUES (?, ?, ?, ?, "cliente")',
-            [nombre, email, passwordEncriptada, telefono]
+            'INSERT INTO usuarios (nombre, email, password, rol) VALUES (?, ?, ?, "cliente")',
+            [nombre, email, passwordEncriptada]
         );
 
         const [nuevoUsuario] = await connection.execute(
@@ -97,6 +97,7 @@ app.get('/api/disponibilidad/:fecha', async (req, res) => {
         res.json({ canchas, reservas });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
+
 // Crear Reserva + Enviar Correo
 app.post('/api/reservar', async (req, res) => {
     try {
@@ -136,6 +137,7 @@ app.post('/api/reservar', async (req, res) => {
 
 
 // --- 3. PERFIL DEL USUARIO ---
+
 // Obtener reservas del usuario 
 app.get('/api/mis-reservas/:id', async (req, res) => {
     try {
@@ -164,7 +166,8 @@ app.post('/api/reservas/:id/cancelar', async (req, res) => {
 app.get('/api/perfil/:id', async (req, res) => {
     try {
         const connection = await mysql.createConnection(dbUrl);
-        const [rows] = await connection.execute('SELECT nombre, email, telefono, direccion FROM usuarios WHERE id = ?', [req.params.id]);
+        // Filtrado para que solo pida datos que sí existen en la tabla
+        const [rows] = await connection.execute('SELECT nombre, email FROM usuarios WHERE id = ?', [req.params.id]);
         await connection.end();
         if (rows.length > 0) res.json(rows[0]);
         else res.status(404).json({ error: 'Usuario no encontrado' });
@@ -175,6 +178,11 @@ app.get('/api/perfil/:id', async (req, res) => {
 app.put('/api/perfil/:id', async (req, res) => {
     try {
         const { campo, valor } = req.body;
+        // Evitar que el frontend intente actualizar campos que no existen
+        if (campo === 'telefono' || campo === 'direccion') {
+            return res.json({ success: true, message: 'Campo ignorado de forma segura' });
+        }
+        
         const connection = await mysql.createConnection(dbUrl);
         await connection.execute(`UPDATE usuarios SET ${campo} = ? WHERE id = ?`, [valor, req.params.id]);
         await connection.end();
@@ -184,13 +192,14 @@ app.put('/api/perfil/:id', async (req, res) => {
 
 
 // --- 4. PANEL ADMINISTRADOR ---
+
 // Obtener todas las reservas (Admin)
 app.get('/api/admin/reservas', async (req, res) => {
     try {
         const connection = await mysql.createConnection(dbUrl);
         const [rows] = await connection.execute(`
             SELECT r.id, r.fecha, r.hora_inicio, r.estado, r.metodo_pago, 
-                   u.nombre as usuario, u.email, c.nombre as ncha
+                   u.nombre as usuario, u.email, c.nombre as cancha
             FROM reservas r JOIN usuarios u ON r.usuario_id = u.id JOIN canchas c ON r.cancha_id = c.id
             ORDER BY r.fecha DESC, r.hora_inicio DESC
         `);

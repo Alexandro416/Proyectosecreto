@@ -7,15 +7,12 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 
-const dns = require('dns');
-dns.setDefaultResultOrder('ipv4first');
-// ----------------------------------------------------------------
-
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// URL de conexión a la base de datos MySQL (Railway)
 const dbUrl = process.env.MYSQL_URL;
 
 // Configuración del correo (NodeMailer)
@@ -41,11 +38,12 @@ app.post('/api/login', async (req, res) => {
         const connection = await mysql.createConnection(dbUrl);
         const [rows] = await connection.execute('SELECT * FROM usuarios WHERE email = ?', [email]);
         await connection.end();
-        
+
         if (rows.length > 0) {
+            // Comparación de la contraseña ingresada con la encriptada
             const contrasenaValida = await bcrypt.compare(password, rows[0].password);
             if (contrasenaValida) {
-                const { password: pwd, ...userSinPassword } = rows[0]; 
+                const { password: pwd, ...userSinPassword } = rows[0];
                 res.json({ success: true, user: userSinPassword });
             } else {
                 res.json({ success: false, message: 'Contraseña incorrecta' });
@@ -61,7 +59,7 @@ app.post('/api/registro', async (req, res) => {
     try {
         const { nombre, email, password, telefono } = req.body;
         const connection = await mysql.createConnection(dbUrl);
-        
+
         const [existentes] = await connection.execute('SELECT id FROM usuarios WHERE email = ?', [email]);
         if (existentes.length > 0) {
             await connection.end();
@@ -77,10 +75,10 @@ app.post('/api/registro', async (req, res) => {
         );
 
         const [nuevoUsuario] = await connection.execute(
-            'SELECT id, nombre, email, rol FROM usuarios WHERE id = ?', 
+            'SELECT id, nombre, email, rol FROM usuarios WHERE id = ?',
             [resultado.insertId]
         );
-        
+
         await connection.end();
         res.json({ success: true, user: nuevoUsuario[0] });
     } catch (error) { res.status(500).json({ error: error.message }); }
@@ -99,18 +97,16 @@ app.get('/api/disponibilidad/:fecha', async (req, res) => {
         res.json({ canchas, reservas });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
-
 // Crear Reserva + Enviar Correo
 app.post('/api/reservar', async (req, res) => {
     try {
         const { usuario_id, cancha_id, fecha, hora_inicio, metodo_pago } = req.body;
         const connection = await mysql.createConnection(dbUrl);
-        
+
         await connection.execute(
             'INSERT INTO reservas (usuario_id, cancha_id, fecha, hora_inicio, metodo_pago) VALUES (?, ?, ?, ?, ?)',
             [usuario_id, cancha_id, fecha, hora_inicio, metodo_pago]
         );
-
         const [userData] = await connection.execute('SELECT nombre, email FROM usuarios WHERE id = ?', [usuario_id]);
         const [canchaData] = await connection.execute('SELECT nombre FROM canchas WHERE id = ?', [cancha_id]);
         await connection.end();
@@ -127,22 +123,20 @@ app.post('/api/reservar', async (req, res) => {
                         <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
                             <p>⚽ <strong>Cancha:</strong> ${canchaData[0].nombre}</p>
                             <p>📅 <strong>Fecha:</strong> ${fecha}</p>
-                            <p>🕒 <strong>Hora:</strong> ${hora_inicio.substring(0,5)}</p>
+                            <p>🕒 <strong>Hora:</strong> ${hora_inicio.substring(0, 5)}</p>
                         </div>
                     </div>
                 `
             };
             transporter.sendMail(mailOptions).catch(console.error);
         }
-
         res.json({ success: true });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 
 // --- 3. PERFIL DEL USUARIO ---
-
-// Obtener reservas del usuario (ESTA ERA LA QUE FALTABA)
+// Obtener reservas del usuario 
 app.get('/api/mis-reservas/:id', async (req, res) => {
     try {
         const connection = await mysql.createConnection(dbUrl);
@@ -190,14 +184,13 @@ app.put('/api/perfil/:id', async (req, res) => {
 
 
 // --- 4. PANEL ADMINISTRADOR ---
-
 // Obtener todas las reservas (Admin)
 app.get('/api/admin/reservas', async (req, res) => {
     try {
         const connection = await mysql.createConnection(dbUrl);
         const [rows] = await connection.execute(`
             SELECT r.id, r.fecha, r.hora_inicio, r.estado, r.metodo_pago, 
-                   u.nombre as usuario, u.email, c.nombre as cancha
+                   u.nombre as usuario, u.email, c.nombre as ncha
             FROM reservas r JOIN usuarios u ON r.usuario_id = u.id JOIN canchas c ON r.cancha_id = c.id
             ORDER BY r.fecha DESC, r.hora_inicio DESC
         `);

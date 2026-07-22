@@ -1,49 +1,75 @@
-const user = JSON.parse(localStorage.getItem('user'));
-if(!user || user.rol !== 'admin') {
-    alert('Acceso denegado.');
-    window.location.href = 'login.html';
-}
-document.getElementById('admin-name').innerText = `👤 ${user.nombre}`;
+document.addEventListener('DOMContentLoaded', () => {
+    cargarReservasAdmin();
+});
 
-async function cargarReservas() {
+async function cargarReservasAdmin() {
     try {
         const res = await fetch('/api/admin/reservas');
         const reservas = await res.json();
-        const tbody = document.getElementById('tabla-reservas');
+        
+        let pendientes = 0, confirmadas = 0;
+        const tbody = document.getElementById('admin-table-body');
         tbody.innerHTML = '';
 
         reservas.forEach(r => {
-            const fechaFormat = new Date(r.fecha).toLocaleDateString();
-            const estadoHtml = r.estado === 'confirmada' 
-                ? '<span class="badge bg-verde">Confirmada</span>' 
-                : '<span class="badge bg-rojo">Cancelada</span>';
-            
-            const botonAccion = r.estado === 'confirmada'
-                ? `<button class="btn-cancelar" onclick="cancelarReserva(${r.id})">Cancelar</button>`
-                : '-';
+            // Contadores para las tarjetas
+            if(r.estado === 'pendiente') pendientes++;
+            if(r.estado === 'confirmada') confirmadas++;
 
-            tbody.innerHTML += `
-                <tr>
-                    <td>${fechaFormat}</td>
-                    <td>${r.hora_inicio.substring(0,5)}</td>
-                    <td>${r.usuario}<br><small style="color:#64748b;">${r.email}</small></td>
-                    <td>${r.cancha}</td>
-                    <td>${r.metodo_pago === 'qr' ? 'QR / Yape' : 'Tarjeta'}</td>
-                    <td>${estadoHtml}</td>
-                    <td>${botonAccion}</td>
-                </tr>
+            const tr = document.createElement('tr');
+            
+            // Botones de acción dinámicos
+            let actionButtons = '';
+            if (r.estado === 'pendiente') {
+                actionButtons = `
+                    <button class="action-btn btn-approve" onclick="aprobarReserva(${r.id})">✔ Aprobar</button>
+                    <button class="action-btn btn-cancel" onclick="cancelarReserva(${r.id})">✖ Rechazar</button>
+                `;
+            } else if (r.estado === 'confirmada') {
+                actionButtons = `<button class="action-btn btn-cancel" onclick="cancelarReserva(${r.id})">✖ Cancelar</button>`;
+            } else {
+                actionButtons = `<span style="color:#999;">Sin acción</span>`;
+            }
+
+            tr.innerHTML = `
+                <td>#${r.id}</td>
+                <td><strong>${r.usuario}</strong><br><span style="font-size:12px; color:#777;">${r.email}</span></td>
+                <td>${r.cancha}</td>
+                <td>${new Date(r.fecha).toLocaleDateString()} <br> <span style="color:#007bff; font-weight:bold;">${r.hora_inicio.substring(0,5)}</span></td>
+                <td>${r.metodo_pago === 'qr' ? 'QR / Yape' : 'Tarjeta'}</td>
+                <td><span class="badge ${r.estado}">${r.estado.toUpperCase()}</span></td>
+                <td>${actionButtons}</td>
             `;
+            tbody.appendChild(tr);
         });
+
+        // Actualizar las tarjetas del dashboard
+        document.getElementById('tot-reservas').innerText = reservas.length;
+        document.getElementById('tot-pendientes').innerText = pendientes;
+        document.getElementById('tot-confirmadas').innerText = confirmadas;
+
     } catch (error) {
-        console.error('Error cargando reservas:', error);
+        console.error('Error cargando admin:', error);
     }
+}
+
+async function aprobarReserva(id) {
+    if(!confirm("¿Aprobar esta reserva y marcarla como pagada?")) return;
+    try {
+        await fetch(`/api/admin/reservas/${id}/confirmar`, { method: 'POST' });
+        cargarReservasAdmin();
+    } catch (error) { console.error('Error:', error); }
 }
 
 async function cancelarReserva(id) {
-    if(confirm('¿Estás seguro de cancelar esta reserva? El espacio quedará libre en la grilla.')) {
+    if(!confirm("¿Seguro que deseas cancelar esta reserva?")) return;
+    try {
         await fetch(`/api/admin/reservas/${id}/cancelar`, { method: 'POST' });
-        cargarReservas();
-    }
+        cargarReservasAdmin();
+    } catch (error) { console.error('Error:', error); }
 }
 
-cargarReservas();
+function cerrarSesion() {
+    localStorage.removeItem('user');
+    window.location.href = 'login.html';
+}

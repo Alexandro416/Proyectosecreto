@@ -19,7 +19,8 @@ async function cargarReservas() {
         const reservas = await res.json();
         const contenedor = document.getElementById('lista-reservas');
         
-        const activas = reservas.filter(r => r.estado === 'confirmada').length;
+        // Sumamos al contador tanto las confirmadas como las que están en espera de revisión
+        const activas = reservas.filter(r => r.estado === 'confirmada' || r.estado === 'pendiente').length;
         document.getElementById('contador-reservas').innerText = `${activas} reserva(s) activa(s)`;
 
         if(reservas.length === 0) {
@@ -34,13 +35,25 @@ async function cargarReservas() {
             const horaFinNum = parseInt(horaInicioStr.split(':')[0]) + 1;
             const horaFinStr = `${horaFinNum}:00`;
             const fechaFormat = formatearFecha(r.fecha);
-            const isConfirmada = r.estado === 'confirmada';
-            const badgeClass = isConfirmada ? 'confirmada' : 'cancelada';
-            const badgeText = isConfirmada ? 'Confirmada' : 'Cancelada';
+            
+            // Lógica de 3 estados
+            let badgeText = '';
+            let badgeClass = '';
+            let btnCancelarHTML = '';
 
-            const btnCancelarHTML = isConfirmada 
-                ? `<button class="btn-action btn-cancelar" onclick="cancelarReserva(${r.id})">❌ Cancelar</button>` 
-                : '';
+            if (r.estado === 'confirmada') {
+                badgeText = 'Confirmada';
+                badgeClass = 'confirmada';
+                btnCancelarHTML = `<button class="btn-action btn-cancelar" onclick="cancelarReserva(${r.id})">❌ Cancelar</button>`;
+            } else if (r.estado === 'pendiente') {
+                badgeText = 'Pendiente';
+                badgeClass = 'pendiente'; // Esta clase amarilla la agregamos a tu CSS en el paso anterior
+                btnCancelarHTML = `<button class="btn-action btn-cancelar" onclick="cancelarReserva(${r.id})">❌ Cancelar</button>`;
+            } else {
+                badgeText = 'Cancelada';
+                badgeClass = 'cancelada';
+                btnCancelarHTML = ''; // Si ya está cancelada, ocultamos el botón de cancelar
+            }
 
             contenedor.innerHTML += `
                 <div class="res-card">

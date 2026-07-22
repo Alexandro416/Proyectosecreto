@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeporPlaza - Campo de Marte</title>
     <link rel="stylesheet" href="/css/styles.css">
 </head>
+
 <body class="body-horarios">
     <header>
         <div class="top-bar">
@@ -50,7 +52,7 @@
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    </tbody>
+                </tbody>
             </table>
         </section>
     </main>
@@ -68,6 +70,7 @@
         </div>
     </div>
 
+    <!-- MODAL DE CONFIRMACIÓN DE RESERVA -->
     <div id="booking-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -85,31 +88,79 @@
                 <form class="booking-form" onsubmit="event.preventDefault();">
                     <div class="form-group">
                         <label>👤 Titular de la Reserva</label>
-                        <input type="text" id="modal-user-name" readonly style="background:#f5f5f5;">
+                        <input type="text" id="modal-user-name" readonly
+                            style="background:#f5f5f5; width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="margin-top: 10px;">
                         <label>✉ Email</label>
-                        <input type="email" id="modal-user-email" readonly style="background:#f5f5f5;">
+                        <input type="email" id="modal-user-email" readonly
+                            style="background:#f5f5f5; width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
                     </div>
-                    <div class="form-group">
+
+                    <div class="form-group" style="margin-top: 10px;">
                         <label>💳 Método de Pago *</label>
-                        <select id="metodoPago">
+                        <select id="metodoPago" onchange="cambiarMetodoPago()"
+                            style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                            <option value="qr">Pago QR (WhatsApp / Yape)</option>
                             <option value="tarjeta">Tarjeta de Crédito/Débito</option>
-                            <option value="qr">Pago QR (WhatsApp)</option>
                         </select>
                     </div>
                 </form>
 
-                <div class="payment-instructions">
-                    <strong>Instrucciones de Pago</strong>
-                    <ol>
-                        <li>Para pago QR, tendrás <strong>120 minutos</strong> para enviar tu comprobante.</li>
-                        <li>Envía el comprobante por WhatsApp: <strong>980650752</strong></li>
-                        <li>Un administrador confirmará tu reserva.</li>
-                    </ol>
+                <!-- CONTENEDOR 1: PAGO CON QR (Visible por defecto) -->
+                <div id="pago-qr-container" style="display: block; margin-top: 15px;">
+                    <div class="payment-instructions"
+                        style="background-color: #fff9c4; padding: 15px; border-radius: 8px; font-size: 14px;">
+                        <strong style="display:block; margin-bottom: 5px;">Instrucciones de Pago</strong>
+                        <ol style="margin: 0; padding-left: 15px;">
+                            <li>Para pago QR, tendrás <strong>120 minutos</strong> para enviar tu comprobante.</li>
+                            <li>Envía el comprobante por WhatsApp: <strong>987654321</strong></li>
+                            <li>Un administrador confirmará tu reserva.</li>
+                        </ol>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <!-- Asegúrate de tener una imagen llamada yape-qr.png en tu carpeta public/images/ -->
+                        <img src="imagenes/Qr.jpg" alt="QR Yape"
+                            style="max-width: 150px; border-radius: 10px; border: 2px solid #742384;">
+                        <p style="font-weight: bold; color: #742384; margin-top: 5px; margin-bottom: 0;">¡Yapea aquí!
+                        </p>
+                    </div>
                 </div>
+
+                <!-- CONTENEDOR 2: PAGO CON TARJETA -->
+                <div id="pago-tarjeta-container" style="display: none; margin-top: 15px;">
+                    <div
+                        style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ced4da;">
+
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <p style="margin: 0; font-weight: bold; color: #333;">Ingresa los datos de tu tarjeta:</p>
+                            <!-- BOTÓN MÁGICO DE AUTOCOMPLETAR -->
+                            <button type="button" onclick="autocompletarTarjeta()"
+                                style="background: #17a2b8; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">⚡
+                                Datos de prueba</button>
+                        </div>
+
+                        <input type="text" id="tarjeta-num" placeholder="💳 Número de Tarjeta (Ej: 4000 1234 5678 9010)"
+                            style="width: 100%; box-sizing: border-box; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;"
+                            maxlength="19">
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="text" id="tarjeta-fecha" placeholder="MM/AA"
+                                style="width: 50%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                                maxlength="5">
+                            <input type="text" id="tarjeta-cvv" placeholder="CVV"
+                                style="width: 50%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                                maxlength="4">
+                        </div>
+
+                        <input type="text" id="tarjeta-nombre" placeholder="👤 Nombre como aparece en la tarjeta"
+                            style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                </div>
+
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="margin-top: 20px;">
                 <button id="btn-cancel-modal" class="btn-cancelar">Cancelar</button>
                 <button id="btn-confirm-booking" class="btn-confirmar">✔ Confirmar y Pagar</button>
             </div>
@@ -118,4 +169,5 @@
 
     <script src="/js/horarios.js"></script>
 </body>
+
 </html>

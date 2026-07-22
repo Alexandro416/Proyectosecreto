@@ -319,3 +319,84 @@ td.cell.selected { background-color: #1b5e20; color: white; font-weight: bold; }
     .sel-actions { width: 100%; justify-content: center; }
     .btn-reservar { width: 100%; }
 }
+
+/* =========================================
+   ESTILOS PARA LA PÁGINA DE SEDES
+========================================= */
+
+.body-sedes {
+    background-color: #f7f9fa; /* Fondo ligeramente gris claro para resaltar la tarjeta blanca */
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px 20px;
+    margin: 0;
+    min-height: 100vh;
+}
+
+.titulo-sedes {
+    color: #333333;
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.contenedor-sedes {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.sede-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); /* Sombra elegante */
+    width: 100%;
+    max-width: 420px; /* Ancho perfecto para que se vea como en tu foto */
+    padding: 20px; /* Esto da el marco blanco alrededor de la foto */
+    box-sizing: border-box;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efecto al pasar el mouse por encima */
+.sede-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.sede-img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px; /* Esquinas ligeramente redondeadas en la foto */
+    display: block;
+    margin-bottom: 15px;
+    object-fit: cover;
+}
+
+.sede-info h3 {
+    margin: 0 0 5px 0;
+    color: #2c3e50;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.sede-info p {
+    margin: 0;
+    color: #666666;
+    font-size: 16px;
+}
+
+/* Etiqueta para reservas en espera de Yape */
+.pendiente {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+}

@@ -92,7 +92,8 @@ app.get('/api/disponibilidad/:fecha', async (req, res) => {
     try {
         const connection = await mysql.createConnection(dbUrl);
         const [canchas] = await connection.execute('SELECT * FROM canchas');
-        const [reservas] = await connection.execute('SELECT cancha_id, hora_inicio FROM reservas WHERE fecha = ? AND estado = "confirmada"', [req.params.fecha]);
+        // AHORA BLOQUEA CANCHAS CONFIRMADAS Y PENDIENTES
+        const [reservas] = await connection.execute('SELECT cancha_id, hora_inicio FROM reservas WHERE fecha = ? AND estado IN ("confirmada", "pendiente")', [req.params.fecha]);
         await connection.end();
         res.json({ canchas, reservas });
     } catch (error) { res.status(500).json({ error: error.message }); }
@@ -104,34 +105,32 @@ app.post('/api/reservar', async (req, res) => {
         const { usuario_id, cancha_id, fecha, hora_inicio, metodo_pago } = req.body;
         const connection = await mysql.createConnection(dbUrl);
 
+        // LÓGICA: Si es QR, queda pendiente. Si es tarjeta, se confirma de frente.
+        const estado_inicial = (metodo_pago === 'qr') ? 'pendiente' : 'confirmada';
+
         await connection.execute(
-            'INSERT INTO reservas (usuario_id, cancha_id, fecha, hora_inicio, metodo_pago) VALUES (?, ?, ?, ?, ?)',
-            [usuario_id, cancha_id, fecha, hora_inicio, metodo_pago]
+            'INSERT INTO reservas (usuario_id, cancha_id, fecha, hora_inicio, metodo_pago, estado) VALUES (?, ?, ?, ?, ?, ?)',
+            [usuario_id, cancha_id, fecha, hora_inicio, metodo_pago, estado_inicial]
         );
         const [userData] = await connection.execute('SELECT nombre, email FROM usuarios WHERE id = ?', [usuario_id]);
         const [canchaData] = await connection.execute('SELECT nombre FROM canchas WHERE id = ?', [cancha_id]);
         await connection.end();
 
-        if (userData.length > 0 && process.env.EMAIL_USER) {
+        // Solo enviamos el correo si se pagó con tarjeta (confirmada)
+        if (estado_inicial === 'confirmada' && userData.length > 0 && process.env.EMAIL_USER) {
             const mailOptions = {
                 from: `"Depor Plaza ⚽" <${process.env.EMAIL_USER}>`,
                 to: userData[0].email,
                 subject: '¡Tu reserva está confirmada! 🎉',
-                html: `
-                    <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
                         <h2 style="color: #1b5e20;">¡Hola, ${userData[0].nombre}!</h2>
                         <p>Tu reserva ha sido registrada exitosamente:</p>
-                        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                            <p>⚽ <strong>Cancha:</strong> ${canchaData[0].nombre}</p>
-                            <p>📅 <strong>Fecha:</strong> ${fecha}</p>
-                            <p>🕒 <strong>Hora:</strong> ${hora_inicio.substring(0, 5)}</p>
-                        </div>
-                    </div>
-                `
+                        <p>⚽ Cancha: ${canchaData[0].nombre} <br> 📅 Fecha: ${fecha} <br> 🕒 Hora: ${hora_inicio.substring(0, 5)}</p>
+                    </div>`
             };
             transporter.sendMail(mailOptions).catch(console.error);
         }
-        res.json({ success: true });
+        res.json({ success: true, estado: estado_inicial });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
@@ -213,6 +212,16 @@ app.post('/api/admin/reservas/:id/cancelar', async (req, res) => {
     try {
         const connection = await mysql.createConnection(dbUrl);
         await connection.execute('UPDATE reservas SET estado = "cancelada" WHERE id = ?', [req.params.id]);
+        await connection.end();
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+// Aprobar reserva (Admin)
+app.post('/api/admin/reservas/:id/confirmar', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbUrl);
+        await connection.execute('UPDATE reservas SET estado = "confirmada" WHERE id = ?', [req.params.id]);
         await connection.end();
         res.json({ success: true });
     } catch (error) { res.status(500).json({ error: error.message }); }

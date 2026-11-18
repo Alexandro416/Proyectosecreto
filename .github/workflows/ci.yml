@@ -1,0 +1,54 @@
+name: CI - Validación del proyecto
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop", "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    name: Validar archivos y sintaxis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v5
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar archivos clave
+        run: |
+          for f in server.js package.json package-lock.json \
+                   public/index.html public/login.html public/admin.html \
+                   public/horarios.html public/css/styles.css; do
+            test -f "$f" || { echo "::error::Falta el archivo $f"; exit 1; }
+          done
+          echo "Todos los archivos clave existen"
+
+      - name: Verificar que no hay secretos ni dependencias versionadas
+        run: |
+          if git ls-files --error-unmatch .env > /dev/null 2>&1; then
+            echo "::error::El archivo .env está versionado"; exit 1
+          fi
+          if git ls-files | grep -q '^node_modules/'; then
+            echo "::error::node_modules está versionado"; exit 1
+          fi
+          echo "Sin secretos ni dependencias en el repositorio"
+
+      - name: Validar sintaxis de JavaScript
+        run: |
+          node --check server.js
+          for f in public/js/*.js; do
+            node --check "$f"
+          done
+          echo "Sintaxis correcta"

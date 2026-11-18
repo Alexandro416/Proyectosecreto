@@ -1,0 +1,61 @@
+name: CI - Integración con MySQL
+
+on:
+  pull_request:
+    branches: [ "develop", "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  integracion:
+    name: Probar API contra MySQL
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: deporplaza
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      MYSQL_URL: mysql://root:root@127.0.0.1:3306/deporplaza
+      PORT: 3000
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v5
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Cargar esquema y datos mínimos
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot deporplaza < db/schema.sql
+          mysql -h 127.0.0.1 -uroot -proot deporplaza < db/seed.sql
+
+      - name: Iniciar el servidor
+        run: |
+          node server.js &
+          for i in $(seq 1 20); do
+            curl -fs http://localhost:3000/login.html > /dev/null && exit 0
+            sleep 1
+          done
+          echo "::error::El servidor no respondió a tiempo"; exit 1
+
+      - name: Ejecutar prueba de humo de la API
+        run: node scripts/smoke-test.js

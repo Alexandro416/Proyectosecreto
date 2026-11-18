@@ -1,0 +1,56 @@
+name: CD - Entrega a producción
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  empaquetar:
+    name: Empaquetar la versión
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v5
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias de producción
+        run: npm ci --omit=dev
+
+      - name: Generar paquete
+        run: |
+          tar -czf deporplaza-${{ github.sha }}.tar.gz \
+            server.js package.json package-lock.json public images
+
+      - name: Guardar paquete como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: deporplaza-paquete
+          path: deporplaza-${{ github.sha }}.tar.gz
+          retention-days: 30
+
+  desplegar:
+    name: Desplegar en Railway
+    needs: empaquetar
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v5
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Desplegar
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service "${{ vars.RAILWAY_SERVICE }}" --detach

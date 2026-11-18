@@ -1,0 +1,22 @@
+name: Release - Publicar versión
+
+on:
+  push:
+    tags: [ "v*" ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Crear release en GitHub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v5
+
+      - name: Crear release con notas automáticas
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" --generate-notes --title "DeporPlaza $TAG"
